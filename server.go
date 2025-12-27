@@ -96,6 +96,21 @@ func serveServerConfig(c *gin.Context) {
 	host := viper.GetString("server_api.host")
 	port := viper.GetString("server_api.port")
 
+	// If host is 0.0.0.0 (bind to all interfaces), use the request host instead
+	if host == "0.0.0.0" {
+		// Extract hostname from the current request
+		host = c.Request.Host
+		// Remove port if present in request host
+		if colonIdx := len(host) - 1; colonIdx > 0 {
+			for i := len(host) - 1; i >= 0; i-- {
+				if host[i] == ':' {
+					host = host[:i]
+					break
+				}
+			}
+		}
+	}
+
 	serverBaseURL := fmt.Sprintf(`%s%s`, protocol, host)
 	if port != "" {
 		serverBaseURL = fmt.Sprintf("%s:%s", serverBaseURL, port)
